@@ -6,7 +6,7 @@ This repository serves as the main setup and coordination point for the complete
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/brettheap/dartwing.git dartwing
+   git clone https://github.com/opensoft/Dartwing.git dartwing
    cd dartwing
    ```
 
@@ -106,3 +106,7 @@ This orchestrator is designed to work with the Dartwingers development environme
 - Update-project configuration scripts  
 - Azure DevOps repositories
 - WSL-based development workflow
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
