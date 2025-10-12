@@ -127,7 +127,7 @@ if [ "$SKIP_UPDATE_PROJECT" = false ]; then
     if [ -f "$UPDATE_PROJECT_SCRIPT" ]; then
         echo ""
         print_status "Running update-project script to configure the environment..."
-        bash "$UPDATE_PROJECT_SCRIPT"
+        bash "$UPDATE_PROJECT_SCRIPT" dartwing
         
         if [ $? -eq 0 ]; then
             print_status "Project configuration completed successfully!"
