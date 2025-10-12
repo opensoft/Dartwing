@@ -6,7 +6,7 @@ This repository serves as the main setup and coordination point for the complete
 
 1. **Clone this repository:**
    ```bash
-   git clone [this-repo-url] dartwing
+   git clone https://github.com/brettheap/dartwing.git dartwing
    cd dartwing
    ```
 
