@@ -18,7 +18,7 @@ GATEKEEPER_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Da
 LIB_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib"
 
 # Default branch
-DEFAULT_BRANCH="develop"
+DEFAULT_BRANCH="devcontainer"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}    Dartwing Project Setup Script      ${NC}"
