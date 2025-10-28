@@ -43,7 +43,7 @@ clone_or_update_repo() {
     local repo_name=$1
     local repo_url=$2
     local target_dir=$3
-    local branch=${4:-$DEFAULT_BRANCH}
+    local branch=${4:-develop}
     
     if [ -d "$target_dir" ]; then
         if [ -d "$target_dir/.git" ]; then
@@ -115,7 +115,11 @@ echo ""
 # Clone or update repositories
 clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH"
 clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gatekeeper" "$BRANCH"
+<<<<<<< Updated upstream
 clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib" "develop"
+=======
+clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib"
+>>>>>>> Stashed changes
 
 echo ""
 print_status "All repositories cloned/updated successfully!"
