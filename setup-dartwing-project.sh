@@ -115,12 +115,7 @@ echo ""
 # Clone or update repositories
 clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH"
 clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gatekeeper" "$BRANCH"
-<<<<<<< Updated upstream
-clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib" "develop"
-=======
 clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib"
->>>>>>> Stashed changes
-
 echo ""
 print_status "All repositories cloned/updated successfully!"
 
