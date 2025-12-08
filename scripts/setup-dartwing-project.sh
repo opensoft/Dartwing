@@ -13,9 +13,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Repository URLs
-APP_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app"
-GATEKEEPER_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper"
-LIB_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib"
+APP_REPO="https://github.com/opensoft/Dartwing-app.git"
+GATEKEEPER_REPO="https://github.com/opensoft/Dartwing-gatekeeper.git"
+LIB_REPO="https://github.com/opensoft/Dartwing-lib.git"
+FRAPPE_REPO="https://github.com/opensoft/Dartwing-frappe.git"
 
 # Default branch
 DEFAULT_BRANCH="devcontainer"
@@ -71,15 +72,16 @@ clone_or_update_repo() {
 }
 
 # Check if we're in the right directory
-if [ ! -f "arch.md" ] || [ ! -f "CLAUDE.md" ]; then
+if [ ! -f "README.md" ] || ! grep -q "Dartwing Project Orchestrator" "README.md"; then
     print_error "This doesn't appear to be the Dartwing project root directory."
-    print_error "Please run this script from the directory containing arch.md and CLAUDE.md"
+    print_error "Please run this script from the Dartwing Orchestrator root directory (containing README.md)"
     exit 1
 fi
 
 # Parse command line arguments
 BRANCH="$DEFAULT_BRANCH"
 SKIP_UPDATE_PROJECT=false
+TEST_DEVCONTAINERS=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -91,12 +93,17 @@ while [[ $# -gt 0 ]]; do
             SKIP_UPDATE_PROJECT=true
             shift
             ;;
+        --test-devcontainers)
+            TEST_DEVCONTAINERS=true
+            shift
+            ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
             echo ""
             echo "Options:"
             echo "  -b, --branch BRANCH         Specify branch to checkout (default: $DEFAULT_BRANCH)"
             echo "  --skip-update-project       Skip running the update-project script"
+            echo "  --test-devcontainers        Test that each subproject devcontainer builds successfully"
             echo "  -h, --help                  Show this help message"
             echo ""
             exit 0
@@ -114,8 +121,9 @@ echo ""
 
 # Clone or update repositories
 clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH"
-clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gatekeeper" "$BRANCH"
+clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gateway" "$BRANCH"
 clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib" "$BRANCH"
+clone_or_update_repo "Frappe Integration" "$FRAPPE_REPO" "frappe" "$BRANCH"
 
 echo ""
 print_status "All repositories cloned/updated successfully!"
@@ -140,6 +148,23 @@ if [ "$SKIP_UPDATE_PROJECT" = false ]; then
     fi
 fi
 
+# Test devcontainers if requested
+if [ "$TEST_DEVCONTAINERS" = true ]; then
+    echo ""
+    TEST_SCRIPT="$(dirname "${BASH_SOURCE[0]}")/test-devcontainers.sh"
+    
+    if [ -f "$TEST_SCRIPT" ]; then
+        print_status "Running devcontainer tests..."
+        if bash "$TEST_SCRIPT"; then
+            print_status "All devcontainers passed validation!"
+        else
+            print_warning "Some devcontainers failed validation - see details above"
+        fi
+    else
+        print_warning "test-devcontainers.sh not found - skipping devcontainer tests"
+    fi
+fi
+
 echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}         Setup Complete!                ${NC}"
@@ -150,7 +175,8 @@ echo ""
 echo "Next steps:"
 echo "1. Open the project in your IDE"
 echo "2. Check the app/ directory for the Flutter application"
-echo "3. Check the gatekeeper/ directory for the backend service"
+echo "3. Check the gateway/ directory for the backend service"
 echo "4. Check the lib/ directory for shared Flutter components"
+echo "5. Check the frappe/ directory for Frappe ERP integration"
 echo ""
 echo "To update all components in the future, run this script again."

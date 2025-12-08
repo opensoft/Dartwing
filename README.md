@@ -1,6 +1,6 @@
-# Dartwing Project Orchestrator
+# Dartwing Orchestration
 
-This repository serves as the main setup and coordination point for the complete Dartwing project ecosystem.
+This is the root directory of the Dartwing Project Orchestrator. This repository serves as the main setup and coordination point for the complete Dartwing project ecosystem.
 
 ## Quick Start
 
@@ -22,13 +22,14 @@ That's it! The script will automatically:
 
 ## Project Components
 
-The Dartwing project consists of three separate repositories:
+The Dartwing project consists of four separate repositories:
 
-| Component | Directory | Description | Repository |
-|-----------|-----------|-------------|------------|
-| **Flutter App** | `app/` | Mobile application built with Flutter | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app` |
-| **Gatekeeper Service** | `gatekeeper/` | .NET backend API service | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper` |
-| **Flutter Library** | `lib/` | Shared Flutter components and utilities | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib` |
+|| Component | Directory | Description | Repository |
+||-----------|-----------|-------------|------------|
+|| **Flutter App** | `app/` | Mobile application built with Flutter | `https://github.com/opensoft/Dartwing-app` |
+|| **Gatekeeper Service** | `gateway/` | .NET backend API service | `https://github.com/opensoft/Dartwing-gatekeeper` |
+|| **Flutter Library** | `lib/` | Shared Flutter components and utilities | `https://github.com/opensoft/Dartwing-lib` |
+|| **Frappe Integration** | `frappe/` | Frappe ERP integration module | `https://github.com/opensoft/Dartwing-frappe` |
 
 ## Development Workflow
 
@@ -69,18 +70,22 @@ dartwing/ (orchestrator)
 ├── app/                           # Flutter mobile app (cloned)
 │   └── .devcontainer/             # Development environment
 │
-├── gatekeeper/                    # .NET backend service (cloned)
+├── gateway/                        # .NET backend service (cloned)
 │   └── Controllers/               # API endpoints
 │
-└── lib/                           # Shared Flutter library (cloned)
-    ├── core/                      # Core utilities
-    ├── network/                   # API clients  
-    └── gui/                       # UI components
+├── lib/                           # Shared Flutter library (cloned)
+│   ├── core/                      # Core utilities
+│   ├── network/                   # API clients  
+│   └── gui/                       # UI components
+│
+└── frappe/                         # Frappe ERP integration (cloned)
+    ├── integration/               # Integration modules
+    └── api/                       # Frappe API clients
 ```
 
 ## Requirements
 
-- **Git** with SSH keys configured for Azure DevOps
+- **Git** with SSH keys or HTTPS access to GitHub
 - **WSL/Linux environment** (for the update-project script)
 - **Flutter SDK** (configured by the setup process)
 - **.NET SDK** (for gatekeeper service development)
@@ -104,7 +109,7 @@ dartwing/ (orchestrator)
 This orchestrator is designed to work with the Dartwingers development environment and toolchain. It integrates with:
 - DevBench development environment
 - Update-project configuration scripts  
-- Azure DevOps repositories
+- GitHub repositories
 - WSL-based development workflow
 
 ## License

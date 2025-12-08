@@ -1,29 +1,210 @@
-# DartWing Architecture Documentation
+# Dartwing Project Architecture
 
-## Overview
+## Project Overview
 
-DartWing is an open-source Flutter framework designed for mobile business application scaffolding. The project consists of two main components:
+This is the **Dartwing Project Orchestrator** repository - it serves as the main setup and coordination point for the complete Dartwing project ecosystem.
 
-1. **dartwing_flutter_common** - A shared library containing core functionality, networking, and UI components
-2. **dartwing_flutter_frontend** - The main mobile application that implements the DartWing framework
+DartWing is an enterprise-grade Flutter framework designed for mobile business application scaffolding. The project consists of four separate repositories that are cloned and managed by this orchestrator:
 
-## Project Structure
+1. **Flutter App** (`app/`) - The primary Flutter mobile application (cloned from GitHub)
+2. **Gatekeeper Service** (`gateway/`) - The .NET backend API service (cloned from GitHub)
+3. **Flutter Library** (`lib/`) - Shared Flutter components and utilities (cloned from GitHub)
+4. **Frappe Integration** (`frappe/`) - Frappe ERP integration module (cloned from GitHub)
+
+## Orchestrator Repository Structure
+
+### Repository Contents
+This orchestrator repository contains:
+- `setup-dartwing-project.sh` - Main setup script that clones all components
+- `scripts/test-devcontainers.sh` - Devcontainer validation script
+- `README.md` - Quick start and project overview
+- `docs/arch.md` - This architecture documentation
+- `.gitignore` - Excludes cloned components (they have their own git history)
 
 ### High-Level Architecture
 
 ```
-dartwing/
-├── dartwing_flutter_common/     # Shared library/framework
-│   ├── core/                    # Core utilities and data models
-│   ├── network/                 # Network layer and API clients
-│   ├── gui/                     # Shared UI components
-│   └── localization/            # i18n support
-└── dartwing_flutter_frontend/   # Main mobile application
-    ├── lib/
-    │   ├── dart_wing/           # Symlinked common library
-    │   └── *.dart               # App-specific implementations
-    └── pubspec.yaml
+dartwing/ (orchestrator)
+├── setup.sh                       # Wrapper script
+├── README.md                      # Project overview
+├── docs/arch.md                   # Architecture documentation
+├── .gitignore                     # Excludes cloned components
+│
+├── app/                           # Flutter mobile app (cloned)
+│   ├── .git/                      # App's own git repo
+│   ├── lib/
+│   │   ├── main.dart              # Entry point
+│   │   └── *.dart                 # App-specific code
+│   ├── pubspec.yaml               # Flutter dependencies
+│   └── .devcontainer/             # Development environment
+│
+├── gateway/                        # .NET backend service (cloned)
+│   ├── .git/                      # Gateway's own git repo
+│   ├── Controllers/               # API controllers
+│   ├── Services/                  # Business logic
+│   ├── Models/                    # Data models
+│   └── Program.cs                 # Service entry point
+│
+├── lib/                           # Shared Flutter library (cloned)
+│   ├── .git/                      # Lib's own git repo
+│   ├── core/                      # Core utilities
+│   │   ├── data/                  # Data models with JSON serialization
+│   │   ├── globals.dart           # Global state management
+│   │   └── persistent_storage.dart
+│   ├── network/                   # API clients
+│   │   ├── dart_wing/            # DartWing API
+│   │   ├── healthcare/           # Healthcare API (Frappe support)
+│   │   └── base_api.dart         # Base API class
+│   ├── gui/                       # Reusable UI components
+│   │   ├── widgets/
+│   │   ├── organization/
+│   │   └── scanner_page.dart
+│   └── localization/              # i18n resources
+│
+└── frappe/                        # Frappe ERP integration (cloned)
+    ├── .git/                      # Frappe's own git repo
+    ├── integration/               # Integration modules
+    └── api/                       # Frappe API clients
 ```
+
+## Setup and Development
+
+### Initial Setup
+
+1. **Clone this orchestrator repository**:
+   ```bash
+   git clone https://github.com/opensoft/Dartwing.git dartwing
+   cd dartwing
+   ```
+
+2. **Run the setup script**:
+   ```bash
+   ./setup.sh
+   ```
+   This will:
+   - Clone the app, gateway, lib, and frappe repositories
+   - Run the update-project script to configure the development environment
+   - Set up devcontainer configurations
+
+### Setup Script Options
+
+```bash
+# Clone/update specific branch (default: devcontainer)
+./setup.sh --branch feature/my-branch
+
+# Skip running the update-project configuration script
+./setup.sh --skip-update-project
+
+# Test that each subproject devcontainer builds successfully
+./setup.sh --test-devcontainers
+
+# Show help
+./setup.sh --help
+```
+
+### Flutter App Development
+
+After setup, all Flutter commands should be run from the app directory:
+
+```bash
+# Navigate to Flutter app
+cd app
+
+# Install dependencies
+flutter pub get
+
+# Analyze code
+flutter analyze
+
+# Run tests
+flutter test
+
+# Generate JSON serialization code
+flutter pub run build_runner build --delete-conflicting-outputs
+
+# Run the app
+flutter run
+
+# Build for release
+flutter build apk  # Android
+flutter build ios  # iOS
+```
+
+### Backend (Gatekeeper) Development
+
+For .NET backend service development:
+
+```bash
+# Navigate to gatekeeper service
+cd gateway
+
+# Restore dependencies
+dotnet restore
+
+# Build the project
+dotnet build
+
+# Run the service
+dotnet run
+```
+
+### Git Workflow
+
+#### Orchestrator Repository
+- This repository manages project setup and configuration
+- Contains documentation and setup scripts
+- Does not contain actual source code (that's in component repos)
+
+#### Component Repositories
+- **app/**: Flutter mobile application repository
+- **gateway/**: .NET backend service repository
+- **lib/**: Shared Flutter library repository
+- **frappe/**: Frappe ERP integration repository
+- Each has its own git workflow: `develop` → `main`
+- Commit format: `#TICKET_NUMBER Description`
+
+#### Making Changes
+1. Work in the appropriate component directory (`app/`, `gateway/`, `lib/`, or `frappe/`)
+2. Commit changes in the component's git repository
+3. Push changes to the component's remote repository
+
+#### JSON Code Generation (Flutter)
+When modifying `@JsonSerializable` models:
+1. Edit the model in `lib/` directory
+2. Run from `app/` directory:
+   ```bash
+   flutter pub run build_runner build --delete-conflicting-outputs
+   ```
+3. Commit both `.dart` and `.g.dart` files in respective repositories
+
+#### Updating Project
+To get latest changes from all component repositories:
+```bash
+./setup.sh
+```
+
+## Key Technologies
+
+### Flutter App & Shared Library
+- **Flutter SDK**: ^3.6.1
+- **State Management**: Global state via Globals class
+- **Authentication**: Keycloak integration
+- **JSON Serialization**: json_annotation + build_runner
+- **Localization**: easy_localization (en, de)
+- **Key Dependencies**: mobile_scanner, keycloak_wrapper, upgrader
+
+### Backend Service
+- **Framework**: .NET
+- **Architecture**: RESTful API service
+- **Purpose**: Primary backend API (Gatekeeper)
+
+### Frappe Integration
+- **Healthcare Module**: Healthcare API support
+- **ERP Integration**: Frappe-based business functionality
+
+## Framework Architecture
+
+The following sections detail the internal architecture of the DartWing framework, which is used across the shared library (`lib/`) and Flutter app (`app/`).
 
 ## Core Architecture Patterns
 
