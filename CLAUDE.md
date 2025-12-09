@@ -24,7 +24,7 @@ This orchestrator repository contains:
 ### Initial Setup
 1. **Clone this orchestrator repository**:
    ```bash
-   git clone https://github.com/opensoft/Dartwing.git dartwing
+   git clone [orchestrator-repo-url] dartwing
    cd dartwing
    ```
 
@@ -161,7 +161,7 @@ dartwing/ (orchestrator)
 
 ### Initial Setup
 ```bash
-git clone https://github.com/opensoft/Dartwing.git dartwing
+git clone [orchestrator-repo] dartwing
 cd dartwing
 ./setup-dartwing-project.sh
 ```

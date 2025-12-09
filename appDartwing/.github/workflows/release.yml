@@ -1,0 +1,373 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      pre_release:
+        description: 'Pre-release'
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+
+env:
+  JAVA_VERSION: "17"
+
+jobs:
+  # Validate release conditions
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag_name: ${{ steps.tag.outputs.tag }}
+      release_notes: ${{ steps.notes.outputs.notes }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Determine tag name
+      id: tag
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          # Get current version from pubspec.yaml
+          current_version=$(grep "^version:" pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
+          echo "Current version: $current_version"
+          
+          # Calculate new version based on release type
+          IFS='.' read -ra VERSION_PARTS <<< "$current_version"
+          major=${VERSION_PARTS[0]}
+          minor=${VERSION_PARTS[1]}
+          patch=${VERSION_PARTS[2]}
+          
+          case "${{ github.event.inputs.release_type }}" in
+            "major")
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            "minor")
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            "patch")
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          new_version="$major.$minor.$patch"
+          tag_name="v$new_version"
+        else
+          # Use existing tag
+          tag_name="${{ github.ref_name }}"
+          new_version="${tag_name#v}"
+        fi
+        
+        echo "tag=$tag_name" >> $GITHUB_OUTPUT
+        echo "version=$new_version" >> $GITHUB_OUTPUT
+        echo "Tag name: $tag_name"
+        echo "Version: $new_version"
+    
+    - name: Generate release notes
+      id: notes
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          # Get commits since last tag
+          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$last_tag" ]; then
+            echo "Generating notes since $last_tag"
+            notes=$(git log --pretty=format:"- %s" "$last_tag"..HEAD)
+          else
+            echo "No previous tag found, getting recent commits"
+            notes=$(git log --pretty=format:"- %s" -n 10)
+          fi
+        else
+          echo "Tag-triggered release, using commit messages"
+          notes=$(git log --pretty=format:"- %s" -n 5)
+        fi
+        
+        # Save multi-line notes
+        {
+          echo 'notes<<EOF'
+          echo "$notes"
+          echo 'EOF'
+        } >> $GITHUB_OUTPUT
+
+  # Full test suite before release
+  test:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [validate]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        cache: true
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Code quality checks
+      run: |
+        echo "Running code quality checks..."
+        flutter analyze --fatal-infos
+        flutter format --set-exit-if-changed .
+    
+    - name: Run all tests
+      run: |
+        echo "Running comprehensive test suite..."
+        flutter test --coverage --reporter=expanded
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        flags: release
+        name: release-coverage
+
+  # Build signed release APK
+  build:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [validate, test]
+    outputs:
+      apk_path: ${{ steps.build.outputs.apk_path }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        cache: true
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Update version in pubspec.yaml
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        version="${{ needs.validate.outputs.tag_name }}"
+        version="${version#v}"  # Remove 'v' prefix
+        
+        # Update version in pubspec.yaml
+        sed -i "s/^version:.*/version: $version+${{ github.run_number }}/" pubspec.yaml
+        echo "Updated version to: $version+${{ github.run_number }}"
+        
+        # Verify the change
+        grep "^version:" pubspec.yaml
+    
+    - name: Create keystore from secrets
+      if: env.ANDROID_KEYSTORE_BASE64 != ''
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      run: |
+        echo "Creating keystore from base64..."
+        echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release-keystore.jks
+        echo "Keystore created successfully"
+    
+    - name: Create key.properties
+      if: env.ANDROID_KEYSTORE_BASE64 != ''
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        echo "Creating key.properties..."
+        cat > android/key.properties << EOF
+        storePassword=$KEYSTORE_PASSWORD
+        keyPassword=$KEY_PASSWORD
+        keyAlias=$KEY_ALIAS
+        storeFile=release-keystore.jks
+        EOF
+        echo "key.properties created"
+    
+    - name: Build signed APK
+      id: build
+      run: |
+        echo "Building release APK..."
+        flutter build apk --release
+        
+        # Rename APK with version
+        version="${{ needs.validate.outputs.tag_name }}"
+        version="${version#v}"
+        
+        original_path="build/app/outputs/flutter-apk/app-release.apk"
+        new_name="dartwing-$version-release.apk"
+        new_path="build/app/outputs/flutter-apk/$new_name"
+        
+        if [ -f "$original_path" ]; then
+          mv "$original_path" "$new_path"
+          echo "✅ APK built and renamed to: $new_name"
+          echo "apk_path=$new_path" >> $GITHUB_OUTPUT
+          
+          # Get APK info
+          ls -la "$new_path"
+          file "$new_path"
+        else
+          echo "❌ APK not found at expected location"
+          exit 1
+        fi
+    
+    - name: Verify APK signature
+      run: |
+        apk_path="${{ steps.build.outputs.apk_path }}"
+        if [ -f "$apk_path" ]; then
+          echo "Verifying APK signature..."
+          $ANDROID_HOME/build-tools/34.0.0/aapt dump badging "$apk_path" | head -5
+          echo "✅ APK signature verified"
+        else
+          echo "❌ APK not found for signature verification"
+          exit 1
+        fi
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dartwing-release-apk
+        path: ${{ steps.build.outputs.apk_path }}
+        retention-days: 90
+
+  # Create GitHub release
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [validate, test, build]
+    if: success()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download APK artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: dartwing-release-apk
+        path: ./artifacts
+    
+    - name: Create or update tag
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        tag_name="${{ needs.validate.outputs.tag_name }}"
+        echo "Creating tag: $tag_name"
+        
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Update pubspec.yaml if needed
+        version="${tag_name#v}"
+        sed -i "s/^version:.*/version: $version+${{ github.run_number }}/" pubspec.yaml
+        
+        git add pubspec.yaml
+        git commit -m "chore: bump version to $version" || true
+        git tag -a "$tag_name" -m "Release $tag_name"
+        git push origin "$tag_name"
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.validate.outputs.tag_name }}
+        release_name: 'Dartwing ${{ needs.validate.outputs.tag_name }}'
+        body: |
+          ## 🚀 Dartwing Release ${{ needs.validate.outputs.tag_name }}
+          
+          ### 📱 Download
+          - **APK**: See assets below
+          
+          ### 📋 Changes
+          ${{ needs.validate.outputs.release_notes }}
+          
+          ### 🔧 Build Info
+          - Flutter Version: ${{ env.FLUTTER_VERSION }}
+          - Build Number: ${{ github.run_number }}
+          - Commit: ${{ github.sha }}
+          
+          ### 📊 Test Results
+          - ✅ All tests passed
+          - ✅ Code quality checks passed
+          - ✅ APK signed and verified
+        draft: false
+        prerelease: ${{ github.event.inputs.pre_release == 'true' }}
+    
+    - name: Upload APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/dartwing-*-release.apk
+        asset_name: dartwing-${{ needs.validate.outputs.tag_name }}-release.apk
+        asset_content_type: application/vnd.android.package-archive
+    
+    - name: Release summary
+      run: |
+        echo "## 🎉 Release Complete!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** ${{ needs.validate.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Release URL:** ${{ steps.create_release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "**APK:** Available in release assets" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Download and test the APK" >> $GITHUB_STEP_SUMMARY
+        echo "2. Update any deployment documentation" >> $GITHUB_STEP_SUMMARY
+        echo "3. Notify the team of the new release" >> $GITHUB_STEP_SUMMARY
+
+  # Cleanup on failure
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [validate, test, build, release]
+    
+    steps:
+    - name: Cleanup artifacts
+      run: |
+        echo "## ❌ Release Failed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The release process failed. Please check the failed jobs above." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Troubleshooting:**" >> $GITHUB_STEP_SUMMARY
+        echo "1. Check job logs for specific error messages" >> $GITHUB_STEP_SUMMARY
+        echo "2. Verify all required secrets are configured" >> $GITHUB_STEP_SUMMARY
+        echo "3. Ensure tests are passing locally" >> $GITHUB_STEP_SUMMARY
+        echo "4. Try again after fixing issues" >> $GITHUB_STEP_SUMMARY

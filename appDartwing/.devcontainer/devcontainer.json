@@ -1,0 +1,101 @@
+{
+  // COPILOT RULE: The "name" field should read PROJECT_NAME from .env file
+  // SOLUTION: Docker Compose loads .env and sets PROJECT_NAME as container environment variable
+  // We use ${containerEnv:PROJECT_NAME} to read it from the running container
+  // Fallback to generic name if container env is not available yet (cannot use nested variables)
+  "name": "${containerEnv:PROJECT_NAME:Flutter DevContainer}",
+  "_devcontainer_version": "1.1.0",
+  "_template_version": "flutter-devcontainer-1.1.0",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  "forwardPorts": [1455],
+
+  "portsAttributes": {
+    "1455": {
+      "label": "Codex auth callback",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "mounts": [
+    // Make local Claude CLI config available inside the container
+    "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.codex,target=/root/.codex,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.codex,target=${localEnv:HOME}/.codex,type=bind",
+    "source=${localEnv:HOME}/.claude,target=${localEnv:HOME}/.claude,type=bind"
+  ],
+
+  "overrideCommand": false,
+
+  "initializeCommand": {
+    // CRITICAL: Do not remove this command - it implements smart container management
+    // Checks if container is running (attaches) or stopped (cleans up) - prevents conflicts
+    // See .devcontainer/scripts/check-or-attach.sh for implementation details
+    "check-or-attach": "${localWorkspaceFolder}/.devcontainer/scripts/check-or-attach.sh",
+    "adb": "bash -c 'source ${localWorkspaceFolder}/.devcontainer/.env && ${localWorkspaceFolder}/../../../infrastructure/mobile/android/adb/scripts/start-adb-if-needed.sh'",
+    "dartwingers-check": "${localWorkspaceFolder}/../../../infrastructure/mobile/android/adb/scripts/check-dartwingers-service.sh"
+  },
+
+  "onCreateCommand": {
+    "setup-flutter-project": "echo 'Container created - Flutter setup will run on start'"
+  },
+
+  "postStartCommand": ".devcontainer/scripts/startup.sh",
+
+  "postAttachCommand": ".devcontainer/scripts/ready-check.sh",
+
+  "containerEnv": {
+    "SHELL": "/bin/zsh",
+    "TERM_PROGRAM": "${localEnv:TERM_PROGRAM}",
+    "WARP_HONOR_PS1": "1",
+    "WARP_USE_SSH_WRAPPER": "${localEnv:WARP_USE_SSH_WRAPPER}",
+    "WARP_IS_LOCAL_SHELL_SESSION": "${localEnv:WARP_IS_LOCAL_SHELL_SESSION}"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // dart and flutter extensions
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter",
+        // infrastructure extensions
+        "ms-azuretools.vscode-docker",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        // ai extensions
+        "anthropic.claude-code",
+        "openai.chatgpt",
+        "eamodio.gitlens",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "dart.flutterSdkPath": "/flutter",
+        "dart.debugExternalLibraries": true,
+        "dart.debugSdkLibraries": false,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh",
+            "args": ["-l"]
+          },
+          "Codex": {
+            "path": "/bin/zsh",
+            "args": ["-c", "codex cmd; exec zsh"]
+          },
+          "Claude Code": {
+            "path": "/bin/zsh",
+            "args": ["-c", "claude cmd; exec zsh"]
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "remoteUser": "${localEnv:USER:vscode}"
+}

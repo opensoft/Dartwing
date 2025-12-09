@@ -1,0 +1,26 @@
+{
+  "folders": [
+    {
+      "name": "dartwing-app",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "dart.flutterSdkPath": "/flutter",
+    "dart.debugExternalLibraries": true,
+    "dart.debugSdkLibraries": false,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "dart-code.dart-code",
+      "dart-code.flutter",
+      "ms-azuretools.vscode-docker",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
+
+# Build artifacts (except APKs)
+build/*
+!build/app/outputs/flutter-apk/*.apk
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Tests
+test/
+test_driver/
+integration_test/
+.test_coverage/
+coverage/
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/gradle/
+android/.idea/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.generated/
+ios/Runner.xcworkspace/
+
+# GitHub Actions
+.github/
+!.github/DOCKER_GHCR_SETUP.md
+
+# Other
+*.log
+*.tmp
+*.temp
+node_modules/

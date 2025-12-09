@@ -6,13 +6,13 @@ This repository serves as the main setup and coordination point for the complete
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/opensoft/Dartwing.git dartwing
+   git clone [this-repo-url] dartwing
    cd dartwing
    ```
 
 2. **Run the setup script:**
    ```bash
-   ./setup-dartwing-project.sh
+   ./scripts/setup-dartwing-project.sh
    ```
 
 That's it! The script will automatically:
@@ -26,14 +26,14 @@ The Dartwing project consists of three separate repositories:
 
 | Component | Directory | Description | Repository |
 |-----------|-----------|-------------|------------|
-| **Flutter App** | `app/` | Mobile application built with Flutter | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app` |
+| **Flutter App** | `dartwing-app/` | Mobile application built with Flutter | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app` |
 | **Gatekeeper Service** | `gatekeeper/` | .NET backend API service | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper` |
 | **Flutter Library** | `lib/` | Shared Flutter components and utilities | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib` |
 
 ## Development Workflow
 
 ### Making Changes
-1. Navigate to the appropriate component directory (`app/`, `gatekeeper/`, or `lib/`)
+1. Navigate to the appropriate component directory (`dartwing-app/`, `gatekeeper/`, or `lib/`)
 2. Make your changes
 3. Commit and push changes within that component's git repository
 4. Each component maintains its own git history and workflow
@@ -41,32 +41,33 @@ The Dartwing project consists of three separate repositories:
 ### Updating to Latest
 To pull the latest changes from all component repositories:
 ```bash
-./setup-dartwing-project.sh
+./scripts/setup-dartwing-project.sh
 ```
 
 ### Setup Script Options
 ```bash
 # Clone/update specific branch (default: develop)
-./setup-dartwing-project.sh --branch feature/my-branch
+./scripts/setup-dartwing-project.sh --branch feature/my-branch
 
 # Skip running the update-project configuration script  
-./setup-dartwing-project.sh --skip-update-project
+./scripts/setup-dartwing-project.sh --skip-update-project
 
 # Show help
-./setup-dartwing-project.sh --help
+./scripts/setup-dartwing-project.sh --help
 ```
 
 ## Architecture
 
 ```
 dartwing/ (orchestrator)
-├── setup-dartwing-project.sh     # Main setup script
+├── scripts/
+│   └── setup-dartwing-project.sh # Main setup script
 ├── README.md                      # This file
 ├── CLAUDE.md                      # Claude AI guidance
 ├── arch.md                        # Detailed architecture docs
 ├── .gitignore                     # Excludes cloned components
 │
-├── app/                           # Flutter mobile app (cloned)
+├── dartwing-app/                  # Flutter mobile app (cloned)
 │   └── .devcontainer/             # Development environment
 │
 ├── gatekeeper/                    # .NET backend service (cloned)
@@ -106,7 +107,3 @@ This orchestrator is designed to work with the Dartwingers development environme
 - Update-project configuration scripts  
 - Azure DevOps repositories
 - WSL-based development workflow
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

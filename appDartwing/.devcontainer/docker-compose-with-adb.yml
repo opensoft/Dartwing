@@ -1,0 +1,74 @@
+# Docker Compose configuration with centralized ADB service
+# This allows multiple Flutter/Android app containers to share one ADB connection
+name: dartwingers
+
+version: '3.8'
+
+services:
+  # Centralized ADB service that connects to host emulator
+  adb-service:
+    container_name: adb_service
+    build:
+      context: ./adb-service
+      dockerfile: Dockerfile
+    
+    ports:
+      - "5037:5037"  # ADB server port for other containers to connect
+      
+    networks:
+      - dartnet
+      
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "adb", "devices"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # DartWing App Container - connects to ADB service
+  app:
+    container_name: dartwing_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER_UID: "1000"
+        USER_GID: "1000"
+        USERNAME: "brett"
+    
+    volumes:
+      - ../..:/workspaces:cached
+    
+    environment:
+      FLUTTER_ROOT: /opt/flutter
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      ANDROID_HOME: /opt/android-sdk
+      ADB_SERVER_SOCKET: tcp:adb-service:5037  # Connect to ADB service container
+    
+    ports:
+      - "3000:3000"
+      - "8180:8080"
+      - "8000:8000"
+      # Note: No ADB ports needed - using ADB service
+      - "42000:42000"
+      - "42001:42001"
+      - "42002:42002"
+      - "42003:42003"
+      - "42004:42004"
+    
+    networks:
+      - dartnet
+    
+    depends_on:
+      adb-service:
+        condition: service_healthy
+    
+    # Keep container running
+    command: sleep infinity
+
+networks:
+  dartnet:
+    name: dartnet
+    driver: bridge
