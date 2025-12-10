@@ -19,7 +19,7 @@ dartwing/
 │   ├── gui/                     # Shared UI components
 │   └── localization/            # i18n support
 └── dartwing_flutter_frontend/   # Main mobile application
-    ├── dartwing-flutter/
+    ├── lib/
     │   ├── dart_wing/           # Symlinked common library
     │   └── *.dart               # App-specific implementations
     └── pubspec.yaml

@@ -329,7 +329,7 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: root
     volumes:
-      - frappe-mariadb-data:/var/dartwing-flutter/mysql
+      - frappe-mariadb-data:/var/lib/mysql
 
   redis-core:
     profiles: ["frappe", "gateway", "ai"]
@@ -514,7 +514,7 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: root
     volumes:
-      - frappe-mariadb-dev-data:/var/dartwing-flutter/mysql
+      - frappe-mariadb-dev-data:/var/lib/mysql
 
   redis-frappe:
     image: redis:6
