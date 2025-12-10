@@ -2,6 +2,14 @@
 app/
 gatekeeper/
 lib/
+dartwing-app/
+dartwing-flutter/
+dartwing-frappe/
+dartwing-gateway/
+frappe-alpha/
+frappe-app-dartwing/
+frappe-bravo/
+frappe-charlie/
 
 # IDE and editor files
 .vscode/
