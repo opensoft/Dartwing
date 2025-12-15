@@ -14,8 +14,8 @@ NC='\033[0m' # No Color
 
 # Repository URLs
 APP_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app"
-GATEWAY_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper"
-FLUTTER_LIB_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib"
+GATEKEEPER_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper"
+LIB_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib"
 
 # Default branch
 DEFAULT_BRANCH="devcontainer"
@@ -71,9 +71,9 @@ clone_or_update_repo() {
 }
 
 # Check if we're in the right directory
-if [ ! -f "docs/arch.md" ] || [ ! -f "AI_CONTEXT.md" ]; then
+if [ ! -f "arch.md" ] || [ ! -f "CLAUDE.md" ]; then
     print_error "This doesn't appear to be the Dartwing project root directory."
-    print_error "Please run this script from the directory containing docs/arch.md and AI_CONTEXT.md"
+    print_error "Please run this script from the directory containing arch.md and CLAUDE.md"
     exit 1
 fi
 
@@ -113,16 +113,16 @@ print_status "Using branch: $BRANCH"
 echo ""
 
 # Clone or update repositories
-clone_or_update_repo "Flutter App" "$APP_REPO" "dartwing-app" "$BRANCH"
-clone_or_update_repo "Gateway Service" "$GATEWAY_REPO" "dartwing-gateway" "$BRANCH"
-clone_or_update_repo "Flutter Library" "$FLUTTER_LIB_REPO" "dartwing-flutter" "$BRANCH"
+clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH"
+clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gatekeeper" "$BRANCH"
+clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib" "$BRANCH"
 
 echo ""
 print_status "All repositories cloned/updated successfully!"
 
 # Check if update-project script exists and run it
 if [ "$SKIP_UPDATE_PROJECT" = false ]; then
-    UPDATE_PROJECT_SCRIPT="$HOME/projects/workBenches/scripts/update-project.sh"
+    UPDATE_PROJECT_SCRIPT="/home/brett/projects/workBenches/scripts/update-project.sh"
     
     if [ -f "$UPDATE_PROJECT_SCRIPT" ]; then
         echo ""
@@ -149,8 +149,8 @@ echo "Your Dartwing project is now ready!"
 echo ""
 echo "Next steps:"
 echo "1. Open the project in your IDE"
-echo "2. Check the dartwing-app/ directory for the Flutter application"
-echo "3. Check the dartwing-gateway/ directory for the backend service"
-echo "4. Check the dartwing-flutter/ directory for shared Flutter components"
+echo "2. Check the app/ directory for the Flutter application"
+echo "3. Check the gatekeeper/ directory for the backend service"
+echo "4. Check the lib/ directory for shared Flutter components"
 echo ""
 echo "To update all components in the future, run this script again."
