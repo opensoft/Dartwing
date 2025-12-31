@@ -1,15 +1,13 @@
 # Cloned component directories - these are pulled from separate repositories
+# Using wildcards to ignore common component folder patterns
 app/
 gatekeeper/
 lib/
-dartwing-app/
-dartwing-flutter/
-dartwing-frappe/
-dartwing-gateway/
-frappe-alpha/
-frappe-app-dartwing/
-frappe-bravo/
-frappe-charlie/
+frappe-*/
+*-app/
+*-flutter/
+*-frappe/
+*-gateway/
 
 # IDE and editor files
 .vscode/

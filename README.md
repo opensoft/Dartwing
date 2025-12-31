@@ -26,14 +26,14 @@ The Dartwing project consists of three separate repositories:
 
 | Component | Directory | Description | Repository |
 |-----------|-----------|-------------|------------|
-| **Flutter App** | `dartwing-app/` | Mobile application built with Flutter | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app` |
-| **Gatekeeper Service** | `gatekeeper/` | .NET backend API service | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper` |
+| **Flutter App** | `app/` | Mobile application built with Flutter | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app` |
+| **Gateway Service** | `gateway/` | .NET backend API service | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper` |
 | **Flutter Library** | `lib/` | Shared Flutter components and utilities | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib` |
 
 ## Development Workflow
 
 ### Making Changes
-1. Navigate to the appropriate component directory (`dartwing-app/`, `gatekeeper/`, or `lib/`)
+1. Navigate to the appropriate component directory (`app/`, `gateway/`, or `lib/`)
 2. Make your changes
 3. Commit and push changes within that component's git repository
 4. Each component maintains its own git history and workflow
@@ -59,28 +59,32 @@ To pull the latest changes from all component repositories:
 ## Architecture
 
 ```
-dartwing/ (orchestrator)
+<project-root>/ (orchestrator)
+├── bin/
+│   ├── new-workspace.sh           # Smart script resolver
+│   └── del-workspace.sh           # Smart script resolver
 ├── scripts/
-│   └── setup-dartwing-project.sh # Main setup script
+│   └── setup-project.sh           # Main setup script
 ├── README.md                      # This file
-├── CLAUDE.md                      # Claude AI guidance
-├── arch.md                        # Detailed architecture docs
+├── docs/                          # Documentation
 ├── .gitignore                     # Excludes cloned components
 │
-├── dartwing-app/                  # Flutter mobile app (cloned)
+├── app/                           # Flutter mobile app (cloned)
 │   └── .devcontainer/             # Development environment
 │
-├── gateway/                        # .NET backend service (cloned)
-│   └── Controllers/               # API endpoints
+├── gateway/                       # .NET backend service (cloned)
+│   ├── .devcontainer/             # Development environment
+│   └── src/                       # Source code
 │
 ├── lib/                           # Shared Flutter library (cloned)
 │   ├── core/                      # Core utilities
 │   ├── network/                   # API clients  
 │   └── gui/                       # UI components
 │
-└── frappe/                         # Frappe ERP integration (cloned)
-    ├── integration/               # Integration modules
-    └── api/                       # Frappe API clients
+└── frappe/                        # Frappe ERP integration (cloned)
+    ├── workspaces/                # Multi-branch workspaces
+    ├── scripts/                   # Workspace management
+    └── .devcontainer/             # Development environment
 ```
 
 ## Requirements
