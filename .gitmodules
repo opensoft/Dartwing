@@ -1,0 +1,9 @@
+[submodule "frappe"]
+	path = frappe
+	url = git@github.com:opensoft/dartwing-frappe.git
+[submodule "flutter"]
+	path = flutter
+	url = FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib
+[submodule "gateway"]
+	path = gateway
+	url = git@github.com:opensoft/dartwing-gatekeeper.git
