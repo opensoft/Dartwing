@@ -1,7 +1,10 @@
 # Cloned component directories - these are pulled from separate repositories
 # Using wildcards to ignore common component folder patterns
 app/
+frappe/
+gateway/
 gatekeeper/
+flutter/
 lib/
 frappe-*/
 *-app/

@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-SUBPROJECTS=("app" "gateway" "lib" "frappe")
+SUBPROJECTS=("app" "gateway" "flutter" "frappe")
 FAILED_PROJECTS=()
 PASSED_PROJECTS=()
 

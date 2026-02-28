@@ -3,8 +3,6 @@
 # Dartwing Project Setup Script
 # This script clones the individual Dartwing components and sets up the complete project
 
-set -e  # Exit on any error
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -13,12 +11,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Repository URLs
-APP_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app"
-GATEKEEPER_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper"
-LIB_REPO="FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib"
+APP_REPO="git@github.com:opensoft/dartwing-app.git"
+GATEKEEPER_REPO="git@github.com:opensoft/dartwing-gatekeeper.git"
+FLUTTER_REPO="git@github.com:opensoft/dartwing-lib.git"
+FRAPPE_REPO="git@github.com:opensoft/dartwing-frappe.git"
 
 # Default branch
-DEFAULT_BRANCH="devcontainer"
+DEFAULT_BRANCH="main"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}    Dartwing Project Setup Script      ${NC}"
@@ -50,23 +49,44 @@ clone_or_update_repo() {
             print_status "Updating existing $repo_name repository..."
             cd "$target_dir"
             git fetch origin
-            git checkout "$branch"
-            git pull origin "$branch"
+            # Check if branch exists before checking out
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                git checkout "$branch"
+                git pull origin "$branch"
+            else
+                print_warning "Branch '$branch' not found in $repo_name, using default branch"
+                git checkout "$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+                git pull
+            fi
             cd ..
         else
             print_warning "$target_dir exists but is not a git repository. Removing and cloning fresh..."
             rm -rf "$target_dir"
             git clone "$repo_url" "$target_dir"
             cd "$target_dir"
-            git checkout "$branch"
+            # Check if branch exists before checking out
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                git checkout "$branch"
+            else
+                print_warning "Branch '$branch' not found in $repo_name, using default branch"
+            fi
             cd ..
         fi
     else
         print_status "Cloning $repo_name repository..."
-        git clone "$repo_url" "$target_dir"
-        cd "$target_dir"
-        git checkout "$branch"
-        cd ..
+        if git clone "$repo_url" "$target_dir" 2>&1; then
+            cd "$target_dir"
+            # Check if branch exists before checking out
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                git checkout "$branch"
+            else
+                print_warning "Branch '$branch' not found in $repo_name, using default branch"
+            fi
+            cd ..
+        else
+            print_warning "Failed to clone $repo_name - repository may not exist or access denied"
+            return 1
+        fi
     fi
 }
 
@@ -114,8 +134,9 @@ echo ""
 
 # Clone or update repositories
 clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH"
-clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gatekeeper" "$BRANCH"
-clone_or_update_repo "Flutter Library" "$LIB_REPO" "lib" "$BRANCH"
+clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gateway" "$BRANCH"
+clone_or_update_repo "Flutter Library" "$FLUTTER_REPO" "flutter" "$BRANCH"
+clone_or_update_repo "Frappe Integration" "$FRAPPE_REPO" "frappe" "$BRANCH"
 
 echo ""
 print_status "All repositories cloned/updated successfully!"
@@ -150,7 +171,8 @@ echo ""
 echo "Next steps:"
 echo "1. Open the project in your IDE"
 echo "2. Check the app/ directory for the Flutter application"
-echo "3. Check the gatekeeper/ directory for the backend service"
-echo "4. Check the lib/ directory for shared Flutter components"
+echo "3. Check the gateway/ directory for the backend service"
+echo "4. Check the flutter/ directory for shared Flutter components"
+echo "5. Check the frappe/ directory for Frappe ERP integration"
 echo ""
 echo "To update all components in the future, run this script again."

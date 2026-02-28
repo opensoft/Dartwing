@@ -8,7 +8,7 @@ DartWing is an enterprise-grade Flutter framework designed for mobile business a
 
 1. **Flutter App** (`app/`) - The primary Flutter mobile application (cloned from GitHub)
 2. **Gatekeeper Service** (`gateway/`) - The .NET backend API service (cloned from GitHub)
-3. **Flutter Library** (`lib/`) - Shared Flutter components and utilities (cloned from GitHub)
+3. **Flutter Library** (`flutter/`) - Shared Flutter components and utilities (cloned from GitHub)
 4. **Frappe Integration** (`frappe/`) - Frappe ERP integration module (cloned from GitHub)
 
 ## Orchestrator Repository Structure
@@ -45,8 +45,8 @@ dartwing/ (orchestrator)
 │   ├── Models/                    # Data models
 │   └── Program.cs                 # Service entry point
 │
-├── lib/                           # Shared Flutter library (cloned)
-│   ├── .git/                      # Lib's own git repo
+├── flutter/                       # Shared Flutter library (cloned)
+│   ├── .git/                      # Flutter lib's own git repo
 │   ├── core/                      # Core utilities
 │   │   ├── data/                  # Data models with JSON serialization
 │   │   ├── globals.dart           # Global state management
@@ -82,7 +82,7 @@ dartwing/ (orchestrator)
    ./setup.sh
    ```
    This will:
-   - Clone the app, gateway, lib, and frappe repositories
+   - Clone the app, gateway, flutter, and frappe repositories
    - Run the update-project script to configure the development environment
    - Set up devcontainer configurations
 
@@ -158,19 +158,19 @@ dotnet run
 #### Component Repositories
 - **app/**: Flutter mobile application repository
 - **gateway/**: .NET backend service repository
-- **lib/**: Shared Flutter library repository
+- **flutter/**: Shared Flutter library repository
 - **frappe/**: Frappe ERP integration repository
 - Each has its own git workflow: `develop` → `main`
 - Commit format: `#TICKET_NUMBER Description`
 
 #### Making Changes
-1. Work in the appropriate component directory (`app/`, `gateway/`, `lib/`, or `frappe/`)
+1. Work in the appropriate component directory (`app/`, `gateway/`, `flutter/`, or `frappe/`)
 2. Commit changes in the component's git repository
 3. Push changes to the component's remote repository
 
 #### JSON Code Generation (Flutter)
 When modifying `@JsonSerializable` models:
-1. Edit the model in `lib/` directory
+1. Edit the model in `flutter/` directory
 2. Run from `app/` directory:
    ```bash
    flutter pub run build_runner build --delete-conflicting-outputs

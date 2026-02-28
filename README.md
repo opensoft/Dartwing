@@ -26,14 +26,15 @@ The Dartwing project consists of three separate repositories:
 
 | Component | Directory | Description | Repository |
 |-----------|-----------|-------------|------------|
-| **Flutter App** | `app/` | Mobile application built with Flutter | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/app` |
-| **Gateway Service** | `gateway/` | .NET backend API service | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/gatekeeper` |
-| **Flutter Library** | `lib/` | Shared Flutter components and utilities | `FarHeapSolutions@vs-ssh.visualstudio.com:v3/FarHeapSolutions/Dartwing/flutter_lib` |
+| **Flutter App** | `app/` | Mobile application built with Flutter | `https://github.com/opensoft/Dartwing-app` |
+| **Gatekeeper Service** | `gateway/` | .NET backend API service | `https://github.com/opensoft/Dartwing-gatekeeper` |
+| **Flutter Library** | `flutter/` | Shared Flutter components and utilities | `https://github.com/opensoft/dartwing-lib` |
+| **Frappe Integration** | `frappe/` | Frappe ERP integration module | `https://github.com/opensoft/Dartwing-frappe` |
 
 ## Development Workflow
 
 ### Making Changes
-1. Navigate to the appropriate component directory (`app/`, `gateway/`, or `lib/`)
+1. Navigate to the appropriate component directory (`app/`, `gateway/`, `flutter/`, or `frappe/`)
 2. Make your changes
 3. Commit and push changes within that component's git repository
 4. Each component maintains its own git history and workflow
@@ -76,7 +77,7 @@ To pull the latest changes from all component repositories:
 │   ├── .devcontainer/             # Development environment
 │   └── src/                       # Source code
 │
-├── lib/                           # Shared Flutter library (cloned)
+├── flutter/                       # Shared Flutter library (cloned)
 │   ├── core/                      # Core utilities
 │   ├── network/                   # API clients  
 │   └── gui/                       # UI components
