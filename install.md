@@ -15,7 +15,7 @@ Dartwing is a multi-repo project managed by an orchestrator:
 ```
 Dartwing/                          # Orchestrator (this repo)
 ├── app/                           # Flutter mobile app   (dartwing-app)
-├── flutter/                       # Shared Flutter lib   (dartwing-lib)
+├── flutter/                       # Shared Flutter lib   (dartwing-flutter)
 ├── gateway/                       # .NET backend         (dartwing-gatekeeper)
 ├── frappe/                        # Frappe integration    (dartwing-frappe)
 └── scripts/

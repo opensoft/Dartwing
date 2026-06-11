@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 # Repository URLs
 APP_REPO="git@github.com:opensoft/dartwing-app.git"
 GATEKEEPER_REPO="git@github.com:opensoft/dartwing-gatekeeper.git"
-FLUTTER_REPO="git@github.com:opensoft/dartwing-lib.git"
+FLUTTER_REPO="git@github.com:opensoft/dartwing-flutter.git"
 FRAPPE_REPO="git@github.com:opensoft/dartwing-frappe.git"
 
 # Default branch
@@ -23,6 +23,10 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}    Dartwing Project Setup Script      ${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
+
+# Resolve the project root even when this script is run from another directory.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Function to print status messages
 print_status() {
@@ -37,6 +41,39 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+ensure_gitignore_entry() {
+    local entry=$1
+
+    if [ ! -f ".gitignore" ]; then
+        touch ".gitignore"
+    fi
+
+    if ! grep -Fxq "$entry" ".gitignore"; then
+        print_status "Adding $entry to .gitignore"
+        printf '%s\n' "$entry" >> ".gitignore"
+    fi
+}
+
+remove_legacy_submodule_tracking() {
+    local target_dir=$1
+
+    if git ls-files -s -- "$target_dir" 2>/dev/null | grep -q '^160000 '; then
+        print_status "Removing legacy submodule tracking for $target_dir"
+        git update-index --force-remove "$target_dir"
+    fi
+}
+
+remove_legacy_submodule_config() {
+    local target_dir=$1
+
+    if [ -f ".gitmodules" ]; then
+        git config -f .gitmodules --remove-section "submodule.$target_dir" 2>/dev/null || true
+        if ! git config -f .gitmodules --get-regexp '^submodule\.' >/dev/null 2>&1; then
+            rm -f ".gitmodules"
+        fi
+    fi
+}
+
 # Function to clone or update a repository
 clone_or_update_repo() {
     local repo_name=$1
@@ -47,7 +84,7 @@ clone_or_update_repo() {
     if [ -d "$target_dir" ]; then
         if [ -d "$target_dir/.git" ]; then
             print_status "Updating existing $repo_name repository..."
-            cd "$target_dir"
+            cd "$target_dir" || return 1
             git fetch origin
             # Check if branch exists before checking out
             if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
@@ -62,8 +99,11 @@ clone_or_update_repo() {
         else
             print_warning "$target_dir exists but is not a git repository. Removing and cloning fresh..."
             rm -rf "$target_dir"
-            git clone "$repo_url" "$target_dir"
-            cd "$target_dir"
+            if ! git clone "$repo_url" "$target_dir"; then
+                print_warning "Failed to clone $repo_name - repository may not exist or access denied"
+                return 1
+            fi
+            cd "$target_dir" || return 1
             # Check if branch exists before checking out
             if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
                 git checkout "$branch"
@@ -75,7 +115,7 @@ clone_or_update_repo() {
     else
         print_status "Cloning $repo_name repository..."
         if git clone "$repo_url" "$target_dir" 2>&1; then
-            cd "$target_dir"
+            cd "$target_dir" || return 1
             # Check if branch exists before checking out
             if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
                 git checkout "$branch"
@@ -89,13 +129,6 @@ clone_or_update_repo() {
         fi
     fi
 }
-
-# Check if we're in the right directory
-if [ ! -f "arch.md" ] || [ ! -f "CLAUDE.md" ]; then
-    print_error "This doesn't appear to be the Dartwing project root directory."
-    print_error "Please run this script from the directory containing arch.md and CLAUDE.md"
-    exit 1
-fi
 
 # Parse command line arguments
 BRANCH="$DEFAULT_BRANCH"
@@ -129,14 +162,43 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+cd "$PROJECT_ROOT" || exit 1
+
+# Check if we're in the right directory
+if [ ! -f "docs/arch.md" ] || [ ! -f "docs/CLAUDE.md" ]; then
+    print_error "This doesn't appear to be the Dartwing project root directory."
+    print_error "Expected docs/arch.md and docs/CLAUDE.md under: $PROJECT_ROOT"
+    exit 1
+fi
+
 print_status "Using branch: $BRANCH"
 echo ""
 
+COMPONENT_DIRS=(app gateway flutter frappe)
+for component_dir in "${COMPONENT_DIRS[@]}"; do
+    ensure_gitignore_entry "$component_dir/"
+done
+
+for component_dir in "${COMPONENT_DIRS[@]}"; do
+    remove_legacy_submodule_tracking "$component_dir"
+done
+
+for component_dir in "${COMPONENT_DIRS[@]}"; do
+    remove_legacy_submodule_config "$component_dir"
+done
+
 # Clone or update repositories
-clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH"
-clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gateway" "$BRANCH"
-clone_or_update_repo "Flutter Library" "$FLUTTER_REPO" "flutter" "$BRANCH"
-clone_or_update_repo "Frappe Integration" "$FRAPPE_REPO" "frappe" "$BRANCH"
+SETUP_FAILED=false
+clone_or_update_repo "Flutter App" "$APP_REPO" "app" "$BRANCH" || SETUP_FAILED=true
+clone_or_update_repo "Gatekeeper Service" "$GATEKEEPER_REPO" "gateway" "$BRANCH" || SETUP_FAILED=true
+clone_or_update_repo "Flutter Library" "$FLUTTER_REPO" "flutter" "$BRANCH" || SETUP_FAILED=true
+clone_or_update_repo "Frappe Integration" "$FRAPPE_REPO" "frappe" "$BRANCH" || SETUP_FAILED=true
+
+if [ "$SETUP_FAILED" = true ]; then
+    echo ""
+    print_error "One or more repositories failed to clone or update."
+    exit 1
+fi
 
 echo ""
 print_status "All repositories cloned/updated successfully!"

@@ -28,7 +28,7 @@ The Dartwing project consists of three separate repositories:
 |-----------|-----------|-------------|------------|
 | **Flutter App** | `app/` | Mobile application built with Flutter | `https://github.com/opensoft/Dartwing-app` |
 | **Gatekeeper Service** | `gateway/` | .NET backend API service | `https://github.com/opensoft/Dartwing-gatekeeper` |
-| **Flutter Library** | `flutter/` | Shared Flutter components and utilities | `https://github.com/opensoft/dartwing-lib` |
+| **Flutter Library** | `flutter/` | Shared Flutter components and utilities | `https://github.com/opensoft/dartwing-flutter` |
 | **Frappe Integration** | `frappe/` | Frappe ERP integration module | `https://github.com/opensoft/Dartwing-frappe` |
 
 ## Development Workflow
